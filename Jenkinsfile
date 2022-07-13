@@ -1,7 +1,7 @@
 pipeline {
   agent {
      node { 
-        label 'ec2-asg'
+        label 'ec2-ci-asg'
         }
     
   }
