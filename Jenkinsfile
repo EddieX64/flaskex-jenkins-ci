@@ -18,7 +18,7 @@ pipeline {
     stage('Shell script') {
       steps {
         sh '''pylint $(git ls-files \'*.py\') --exit-zero
-              pytest /tests/test_capitalize.py'''
+              pytest tests/test_capitalize.py'''
       }
     }
   }
