@@ -15,7 +15,7 @@ pipeline {
       }
     }
 
-    stage('Shell script') {
+    stage('Tests') {
       steps {
         sh '''pylint $(git ls-files \'*.py\') --exit-zero
               pytest tests/test_capitalize.py'''
@@ -23,7 +23,7 @@ pipeline {
       }
     }
 
-    stage('Build AMI') {
+    stage('Building artifact') {
       steps {
         script {
           def proceed = true
@@ -34,7 +34,7 @@ pipeline {
           } 
           catch (err) {
             proceed = false
-            echo "Build aborted, AMI will not be built"
+            echo "AMI build aborted"
           }
           if(proceed) {
             echo "Will proceed to build AMI"
