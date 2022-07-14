@@ -21,5 +21,25 @@ pipeline {
               pytest tests/test_capitalize.py'''
       }
     }
+
+    stage('Build AMI') {
+            steps {
+                script {
+                    def proceed = true
+                    try {
+                        timeout(time: 300, unit: 'SECONDS') {
+                            input(message: 'Do you want to build AMI?')
+                        }
+                    } catch (err) {
+                        proceed = false
+                        echo "Build aborted, AMI will not be built"
+                    }
+                    if(proceed) {
+                        echo "Will proceed to build AMI"
+                        // AMI building steps
+                    }
+              }
+          }
+       }
   }
 }
