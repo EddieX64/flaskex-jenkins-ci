@@ -1,9 +1,8 @@
 pipeline {
   agent {
-     node { 
+     node {
         label 'ec2-ci'
         }
-    
   }
   options { timestamps () }
   
@@ -15,36 +14,29 @@ pipeline {
       }
     }
 
-    stage('Tests') {
+    stage('Testing') {
       steps {
-        sh '''pylint $(git ls-files \'*.py\') --exit-zero
+        sh '''python3 -m pip install -r requirements.txt
+              pylint --fail-under 7 ./*.py
               pytest tests/test_capitalize.py'''
-        stash 'test-stash'
+        stash 'workspace'
       }
     }
 
-    stage('Building artifact') {
+    stage('Build artifact') {
+      environment {
+            // get git commit and branch from Jenkins
+            GIT_FULL_COMMIT = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+            GIT_COMMIT = GIT_FULL_COMMIT.substring(0,10)
+            FULL_PATH_BRANCH = "${sh(script:'git name-rev --name-only HEAD', returnStdout: true)}"
+            GIT_BRANCH = FULL_PATH_BRANCH.substring(FULL_PATH_BRANCH.lastIndexOf('/') + 1, FULL_PATH_BRANCH.length()).trim()
+           }
       steps {
-        script {
-          def proceed = true
-          try {
-              timeout(time: 300, unit: 'SECONDS') {
-                input(message: 'Do you want to build AMI?')
-              }
-          } 
-          catch (err) {
-            proceed = false
-            echo "AMI build aborted"
-          }
-          if(proceed) {
-            echo "Will proceed to build AMI"
-              // AMI building steps
-            node('ec2-ci-ami') {
-              unstash 'test-stash'
-              sh '''pwd
-              ls -la'''
-            }
-          }
+          node('ec2-ci-ami') {
+          cleanWs()
+          unstash 'workspace'
+          sh '''echo "$GIT_BRANCH""/""$GIT_COMMIT"
+          ls -la'''
         }
       }
     }
